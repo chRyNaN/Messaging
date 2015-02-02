@@ -106,6 +106,12 @@
 		Object.seal(this);
 	};
 	
+	window.Conversation = Conversation;
+	window.Message = Message;
+	window.MessageSocket = MessageSocket;
+	
+	
+	//example use case
 	var s = new MessageSocket("123456", "ws://localhost:8080/Messaging/message");
 	s.send(new Message("test", "test", "123456"));
 	
