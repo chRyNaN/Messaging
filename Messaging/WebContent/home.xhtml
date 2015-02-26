@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	</head>
+	<body>
+		
+		<div id="video-container">
+			<video id="local-video" height="200px" width="200px" autoplay="autoplay"></video>
+			<video id="remote-video" height="200px" width="200px" autoplay="autoplay"></video>
+		</div>
+		<div id="user-name-container">
+			<input type="text" id="user-name-input" placeholder="Enter desired user name"></input>
+			<button id="submit">Submit</button>
+		</div>
+		<div id="connect-container" style="display: none">
+			<input type="text" id="connect-to" placeholder="Enter user name of other user"></input>
+			<button id="connect">Connect</button>
+		</div>
+		
+		<script src="js/messenger.js"></script>
+		<script src="js/webrtc.js"></script>
+		<script src="js/home.js"></script>
+	</body>
+</html>

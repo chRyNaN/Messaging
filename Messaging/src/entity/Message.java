@@ -15,6 +15,7 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 @Entity
@@ -34,12 +35,45 @@ public class Message {
 	
 	private String type;
 	private String message;
+	
+	private String fileType;
 	private String multimediaURI;
 	
 	private String fromUserId;
 	
 	public Message(){
 		this.viewedTimes = new HashMap<String, Date>();
+	}
+	
+	public Message(String jsonMessage, String fromUserId){
+		this.viewedTimes = new HashMap<String, Date>();
+		this.setFromUserId(fromUserId);
+		try{
+			JSONObject obj = new JSONObject(jsonMessage);
+			if(obj.has("sentTime")){
+				this.setSentTime(new Date(obj.getLong("sentTime")));
+			}else{
+				this.setSentTime(new Date());
+			}
+			if(obj.has("type")){
+				this.setType(obj.getString("type"));
+			}else{
+				this.setType("");
+			}
+			if(obj.has("message")){
+				this.setMessage(obj.getString("message"));
+			}else{
+				this.setMessage(jsonMessage);
+			}
+			if(obj.has("fileType")){
+				this.setFileType(obj.getString("fileType"));
+			}
+		}catch(JSONException e){
+			//Message was most likely not in JSON format
+			this.setSentTime(new Date());
+			this.setType("");
+			this.setMessage(jsonMessage);
+		}
 	}
 	
 	public Message(Date sentTime, String message){
@@ -114,6 +148,14 @@ public class Message {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public String getFileType() {
+		return fileType;
+	}
+
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
 	}
 	
 }

@@ -1,12 +1,11 @@
 package endpoint;
 
-import java.nio.ByteBuffer;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -20,11 +19,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ejb.DatabaseHandler;
 import entity.Message;
 
 @ServerEndpoint("/message/{userId}")
 public class MessageServer {
 	private static ConcurrentMap<String, Session> activeSessions;
+	@Inject
+	DatabaseHandler handler;
+	
+	public static boolean containsUser(String userId){
+		if(MessageServer.activeSessions == null){
+			return false;
+		}else if(MessageServer.activeSessions.containsKey(userId)){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	
 	@OnOpen
 	public void open(Session session, @PathParam("userId") String userId){
@@ -38,12 +50,13 @@ public class MessageServer {
 	
 	@OnMessage
 	public void message(Session session, String message, @PathParam("userId") String userId){
-		System.out.println("Message: " + message);
+		System.out.println("onmessage");
 		try{
 			JSONObject j = new JSONObject(message);
 			JSONArray a;
 			Set<String> recipients = new HashSet<String>();
 			if(j.has("recipients")){
+				System.out.println("has recipients");
 				try{
 					a = j.getJSONArray("recipients");
 					for(int i = 0; i < a.length(); i++){
@@ -52,21 +65,27 @@ public class MessageServer {
 				}catch(JSONException ex){
 					recipients.add(j.getString("recipients"));
 				}
-				Message m = createMessageFromJSON(j, userId);
+				Message m = new Message(message, userId);
 				if(m != null){
-					//TODO should save the message to the database before sending
-					sendMessage(m, recipients);
+					System.out.println("m != null");
+					if(m.getType().toLowerCase().equals("multimedia")){
+						System.out.println("type = multimedia");
+						if(j.has("file")){
+							System.out.println("has file");
+							//TODO save to the database: Future<String> fileURI = handler.saveFile(j.getString("file");
+							//TODO add fileURI to multimediaURI of Message object
+							sendMultimediaMessage(m, recipients, j.getString("file"));
+							//TODO save the message to the database
+						}
+					}else{
+						//TODO should save the message to the database before sending
+						sendMessage(m, recipients);
+					}
 				}
 			}
 		}catch(JSONException e){
 			e.printStackTrace();
 		}
-	}
-	
-	@OnMessage
-	public void message(Session session, ByteBuffer buffer, @PathParam("userId") String userId){
-		//For multi-media such as pictures.
-		
 	}
 	
 	@OnError
@@ -82,46 +101,40 @@ public class MessageServer {
 	}
 	
 	private void sendMessage(Message message, Set<String> recipients){
-		for(String userId : recipients){
-			if(MessageServer.activeSessions.containsKey(userId)){
-				Session session = MessageServer.activeSessions.get(userId);
-				if(session != null){
-					try{
-						JSONObject obj = new JSONObject(message);
-						obj.put("recipients", recipients);
+		try{
+			Session session;
+			JSONObject obj = new JSONObject(message);
+			obj.put("recipients", recipients);
+			for(String userId : recipients){
+				if(MessageServer.activeSessions.containsKey(userId)){
+					session = MessageServer.activeSessions.get(userId);
+					if(session != null){
 						session.getAsyncRemote().sendText(obj.toString());
-						System.out.println("Sending message: " + message.toString());
-					}catch(JSONException e){
-						e.printStackTrace();
 					}
 				}
 			}
+		}catch(JSONException e){
+			e.printStackTrace();
 		}
 	}
 	
-	private Message createMessageFromJSON(JSONObject obj, String userId){
+	private void sendMultimediaMessage(Message message, Set<String> recipients, String binaryFileString){
+		System.out.println("sendMultimediaMessage method");
 		try{
-			System.out.println("Try to create Message from JSON");
-			Message m = new Message();
-			m.setFromUserId(userId);
-			if(obj.has("sentTime")){
-				m.setSentTime(new Date(obj.getLong("sentTime"))); 
+			Session session;
+			JSONObject obj = new JSONObject(message);
+			obj.put("recipients", recipients);
+			obj.put("file", binaryFileString);
+			for(String userId : recipients){
+				if(MessageServer.activeSessions.containsKey(userId)){
+					session = MessageServer.activeSessions.get(userId);
+					if(session != null){
+						session.getAsyncRemote().sendText(obj.toString());
+					}
+				}
 			}
-			if(obj.has("type")){
-				m.setType(obj.getString("type"));
-			}
-			if(obj.has("message")){
-				m.setMessage(obj.getString("message"));
-			}
-			return m;
 		}catch(JSONException e){
-			System.out.println("JSONException");
 			e.printStackTrace();
-			return null;
-		}catch(Exception ex){
-			System.out.println("Exception");
-			ex.printStackTrace();
-			return null;
 		}
 	}
 	
