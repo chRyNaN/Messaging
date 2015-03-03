@@ -1,33 +1,36 @@
 (function(){
 	
-	var Conversation = function(messages, participants){
+	var Conversation = function(participants, messages){
 		if(!(this instanceof Conversation)){
 			throw "Forgot new keyword when creating Conversation object.";
 		}
 		var that = this;
-		this.messages = (typeof messages === "array") ? messages : [messages];
-		this.participants = (typeof participants === "array") ? participants : [participants];
+		if(typeof messages !== "undefined"){
+			this.messages = (typeof messages === "array") ? messages : [messages];
+		}
+		if(typeof participants !== "undefined"){
+			this.participants = (typeof participants === "array") ? participants : [participants];
+		}
 		this.addParticipant = function(userId){
 			if(typeof userId === "string"){
-				if(that.participants.indexOf(userId) == -1) that.participants.push(userId);
+				if(typeof this.participants === "undefined") this.participants = [];
+				if(this.participants.indexOf(userId) == -1) this.participants.push(userId);
 			}
 		};
 		this.removeParticipant = function(userId){
-			var index = that.participants.indexOf(userId);
+			var index = this.participants.indexOf(userId);
 			if(index > -1){
-				that.participants.splice(index, 1);
+				this.participants.splice(index, 1);
 			}
 		};
 		this.addMessage = function(m){
-			if(!(m instanceof Message)){
-				throw "Paramater message for addMessage method in Conversation object must be of type Message.";
-			}
-			if(that.messages.indexOf(m) == -1) that.messages.push(m);
+			if(typeof this.messages === "undefined") this.messages = [];
+			if(this.messages.indexOf(m) == -1) this.messages.push(m);
 		};
 		this.removeMessage = function(m){
-			var index = that.messages.indexOf(m);
+			var index = this.messages.indexOf(m);
 			if(index > -1){
-				that.messages.splice(index, 1);
+				this.messages.splice(index, 1);
 			}
 		};
 	};
@@ -90,7 +93,7 @@
 		this.fromUserId;
 		this.viewedTimes;
 		if(f instanceof File){
-			this.fileType = f.type;
+			this.fileType = f.name.substr((~-f.name.lastIndexOf(".") >>> 0) + 2);
 			var reader = new FileReader();
 			reader.onload = function(){
 				//here "this" refers to the reader object, so use the self variable to refer to this instance of the MultimediaMessage object
