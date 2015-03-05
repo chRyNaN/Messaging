@@ -2,6 +2,7 @@
 <html>
 	<head>
 		
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"></link>
 		<link rel="stylesheet" type="text/css" href="css/main.css"></link>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	</head>
@@ -21,7 +22,29 @@
 		</div>
 		
 		
-		
+		<section class="call">
+			<div class="call-container">
+				<h1 class="calling">Calling</h1>
+			</div>
+			<div class="loading-container">
+				<div class="call-image-block">
+					<img id="current-user"></img>
+					<p class="call-user-name this-user"></p>
+				</div>
+				<div class="loading-shape"></div>
+				<div class="loading-shape"></div>
+				<div class="loading-shape"></div>
+				<div class="loading-shape"></div>
+				<div class="loading-shape"></div>
+				<div class="call-image-block other-image-block">
+					<img id="connected-user"></img>
+					<p class="call-user-name other-user"></p>
+				</div>
+			</div>
+			<div class="call-button-container">
+				<button class="hang-up fa fa-phone" title="End Call"></button>
+			</div>
+		</section>
 		
 		
 		<script src="js/messenger.js"></script>

@@ -62,6 +62,9 @@
 					remoteVideo.src = window.URL.createObjectURL(stream);
 				});
 				break;
+			case "deny":
+				
+				break;
 			}
 			break;
 		case "multimedia":
